@@ -1,0 +1,17 @@
+import {Canvas,useFrame} from '@react-three/fiber';
+import {ContactShadows} from '@react-three/drei';
+import {Component,type ReactNode} from 'react';
+import * as THREE from 'three';
+function Box({position,size,color,metalness=0,roughness=.6}:{position:[number,number,number];size:[number,number,number];color:string;metalness?:number;roughness?:number}){return <mesh position={position} receiveShadow castShadow><boxGeometry args={size}/><meshStandardMaterial color={color} metalness={metalness} roughness={roughness}/></mesh>}
+function Architecture({active}:{active:boolean}){
+ useFrame(({camera,clock})=>{const t=clock.elapsedTime;camera.position.lerp(new THREE.Vector3(active?1.4+Math.sin(t*.1)*.1:2.7+Math.sin(t*.1)*.15,1.7,active?6:9),.02);camera.lookAt(-.3,1.4,-7)});
+ return <><fog attach="fog" args={['#12222a',12,40]}/><ambientLight intensity={.45}/><hemisphereLight args={['#b2d6df','#23353b',1.2]}/><Box position={[0,-.15,-8]} size={[12,.3,40]} color="#607377" roughness={.26} metalness={.3}/><Box position={[0,3.7,-8]} size={[12,.2,40]} color="#293d44"/>
+ {[-5,5].map(x=><group key={x}><Box position={[x,1.8,-8]} size={[.2,3.6,40]} color="#718487"/>{Array.from({length:7},(_,i)=><group key={i} position={[0,0,4-i*5]}><Box position={[x*.98,1.55,0]} size={[.16,2.9,2.8]} color="#203c44" metalness={.5}/><Box position={[x*.96,1.8,0]} size={[.1,1,1.8]} color="#71999e" metalness={.6} roughness={.12}/><Box position={[x*.94,.8,0]} size={[.12,.08,2.8]} color="#b1b7b2" metalness={.8}/><Box position={[x*.93,3.1,0]} size={[.08,.12,3.3]} color="#13b8b0"/></group>)}</group>)}
+ {Array.from({length:9},(_,i)=><group key={i} position={[0,0,7-i*4]}><Box position={[0,3.55,0]} size={[2.2,.05,.45]} color="#d4eeed"/><pointLight position={[0,3.2,0]} color={i%3===0?'#91d6cf':'#d8e7ea'} intensity={13} distance={7} decay={2}/><Box position={[0,.012,0]} size={[.035,.012,3.95]} color="#b2c1bd"/>{[-3,3].map(x=><Box key={x} position={[x,.01,0]} size={[.025,.015,4]} color="#c0cbc4"/>)}</group>)}
+ {active&&<group><Box position={[0,1.8,-5]} size={[10,3.6,.2]} color="#5c7578"/><Box position={[0,1.8,-4.86]} size={[4,1.5,.04]} color="#183942" metalness={.5} roughness={.2}/><Box position={[0,.55,-4.8]} size={[9.8,.1,.1]} color="#93b1ad" metalness={.6}/><Box position={[3.5,1.65,-4.8]} size={[1.8,3.2,.12]} color="#2f5058"/><Box position={[3.5,2.05,-4.7]} size={[1.3,.9,.04]} color="#87acb1" roughness={.15} metalness={.4}/><pointLight position={[0,3,-2]} color="#b9ddd6" intensity={18} distance={10}/></group>}
+ <Box position={[0,1.7,-24]} size={[10,3.5,.2]} color="#203d43"/><Box position={[0,1.7,-23.8]} size={[2.5,3.2,.12]} color="#102d32"/><pointLight position={[-3,2,-2]} intensity={15} color="#13b8b0" distance={8}/><ContactShadows position={[0,.02,-4]} opacity={.35} scale={20} blur={2} far={8}/>
+
+ </>;
+}
+class Boundary extends Component<{children:ReactNode},{error:boolean}>{state={error:false};static getDerivedStateFromError(){return {error:true}}render(){return this.state.error?<div className="scene-fallback">空間渲染不可用 · 可繼續使用探索面板</div>:this.props.children}}
+export default function Scene({active,quality}:{active:boolean;quality:string}){return <Boundary><Canvas shadows={quality==='high'} dpr={quality==='high'?[1,1.5]:1} camera={{position:[2.7,1.7,9],fov:56}} gl={{antialias:quality==='high',powerPreference:'low-power'}}><color attach="background" args={['#12222a']}/><Architecture active={active}/></Canvas></Boundary>}
